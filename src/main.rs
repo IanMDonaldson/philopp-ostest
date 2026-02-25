@@ -10,10 +10,14 @@ use core::panic::PanicInfo;
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
     println!("Hello World{}", "!");
-
+    
+    philopp_ostest::init();
+    x86_64::instructions::interrupts::int3();
+    
     #[cfg(test)]
     test_main();
-    
+   
+    println!("no crashes here!");
     loop {}
 }
 
