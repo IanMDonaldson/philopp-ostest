@@ -10,6 +10,7 @@ use core::panic::PanicInfo;
 pub mod serial;
 pub mod vga_buffer;
 pub mod interrupts;
+pub mod gdt;
 
 pub trait Testable {
     fn run(&self) -> ();
@@ -26,6 +27,11 @@ where
     }
 }
 
+pub fn hlt_loop() -> ! {
+    loop {
+        x86_64::instructions::hlt();
+    }
+}
 pub fn test_runner(tests: &[&dyn Testable]) {
     serial_println!("Running {} tests", tests.len());
     for test in tests {
@@ -38,7 +44,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
     serial_println!("[failed]\n");
     serial_println!("Error: {}\n", info);
     exit_qemu(QemuExitCode::Failed);
-    loop {}
+    hlt_loop();
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -58,7 +64,10 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 }
 
 pub fn init() {
+    gdt::init();
     interrupts::init_idt();
+    unsafe { interrupts::PICS.lock().initialize() };
+    x86_64::instructions::interrupts::enable();
 }
 
 /// Entry point for `cargo xtest`
@@ -67,7 +76,7 @@ pub fn init() {
 pub extern "C" fn _start() -> ! {
     init();
     test_main();
-    loop {}
+    hlt_loop();
 }
 
 #[cfg(test)]

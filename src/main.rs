@@ -12,13 +12,13 @@ pub extern "C" fn _start() -> ! {
     println!("Hello World{}", "!");
     
     philopp_ostest::init();
-    x86_64::instructions::interrupts::int3();
-    
+    // x86_64::instructions::interrupts::int3();
+
     #[cfg(test)]
     test_main();
    
     println!("no crashes here!");
-    loop {}
+    philopp_ostest::hlt_loop();
 }
 
 /// This function is called on panic.
@@ -26,7 +26,7 @@ pub extern "C" fn _start() -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop {}
+    philopp_ostest::hlt_loop();
 }
 
 #[cfg(test)]
